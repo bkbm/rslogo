@@ -27,21 +27,25 @@ impl Turtle {
 
 impl Turtle{
 
-    fn method_for_moving_and_drawing_turtle_mode_dependent_needs_name(&mut self, numpixels: f32, image:&mut Image){
+    fn move_turtle(&mut self, numpixels: f32, image:&mut Image) -> Result<(), String>{
+
         match self.mode {
-            Mode::PenUp => self.move_turtle(numpixels),
-            Mode::PenDown => self.draw(numpixels, image),
+            Mode::PenUp => {
+                self.pen_up_move(numpixels);
+                Ok(())
+            },
+            Mode::PenDown => self.pen_down_move(numpixels, image),
         }
     }
-    fn move_turtle(&mut self, numpixels: f32){
+    fn pen_up_move(&mut self, numpixels: f32){
         let angle = self.angle.to_radians();
-        let x = (100f32*angle.sin()).trunc() / 100.0;
-        let y = (100f32*angle.cos()).trunc() / 100.0;
-        let translation_vector = Location::new(numpixels*x, numpixels*y);
+        let x = (100f32*numpixels*angle.sin()).round() / 100.0;
+        let y = (100f32*numpixels*angle.cos()).round() / 100.0;
+        let translation_vector = Location::new(x, y);
         self.position = self.position.translate(&translation_vector);
 
     }
-    fn draw(&mut self, numpixels: f32, image: &mut Image) {
+    fn pen_down_move(&mut self, numpixels: f32, image: &mut Image) -> Result<(), String> {
         let (x, y) = match image.draw_simple_line(
             self.position.x(),
             self.position.y(),
@@ -50,20 +54,24 @@ impl Turtle{
             COLORS[self.colour as usize]
         ) {
             Ok(tup) => tup,
-            Err(_) => panic!("Error Drawing")
+            Err(error) => {
+                return Err(error.to_string());
+            }
         };
         self.position = Location::new(x,y);
+        Ok(())
 
     }
-    fn turn(&mut self, degrees: f32) {
-        self.set_heading(self.angle+degrees);
+    fn turn(&mut self, degrees: f32) -> Result<(), String>{
+        self.set_heading(self.angle+degrees)
     }
 
-    fn set_heading(&mut self, degrees: f32) {
+    fn set_heading(&mut self, degrees: f32) -> Result<(), String> {
         if degrees.fract() > 0.0 {
-            panic!("Only Integer Degrees are allowed!")
+            return Err(String::from("The angle must be an integer"))
         }
         self.angle = degrees;
+        Ok(())
     }
 
     fn change_colour(&mut self, colourcode: f32) {
@@ -82,6 +90,11 @@ impl Turtle{
 
 #[cfg(test)]
 mod tests{
+    // Some of the tests ignoring result from error able functions because the error is not related
+    // to the functionality tested and also the values are specified for the test such that it is
+    // guaranteed they cant cause an error. There are tests to check the error checking in these
+    // functions to ensure they catch errors. Therefore i can ensure that these errors can be
+    // ignored in those tests.
     use super::*;
     #[test]
     fn setting_x_position(){
@@ -100,87 +113,114 @@ mod tests{
     #[test]
     fn set_heading_valid_small(){
         let mut turtle = Turtle::new();
-        turtle.set_heading(90.0);
-        turtle.set_heading(45.0);
+        let _ = turtle.set_heading(90.0);  
+        let _ = turtle.set_heading(45.0);
         assert_eq!(turtle.angle,45.0);
     }
     #[test]
     fn set_heading_valid_large(){
         let mut turtle = Turtle::new();
-        turtle.set_heading(90.0);
-        turtle.set_heading(370.0);
+        let _ = turtle.set_heading(90.0);
+        let _ = turtle.set_heading(370.0);
         assert_eq!(turtle.angle,370.0);
     }
     #[test]
     fn set_heading_invalid() {
         let mut turtle = Turtle::new();
-        turtle.set_heading(4.5);
-        todo!();
+        let res = turtle.set_heading(4.5);
+        assert_eq!(res.is_err(), true);
+        
     }
     #[test]
     fn turn_turtle_valid_small(){
         let mut turtle = Turtle::new();
-        turtle.set_heading(45.0);
-        turtle.turn(90.0);
+        let _ = turtle.set_heading(45.0);
+        let _ = turtle.turn(90.0);
         assert_eq!(turtle.angle,135.0);
     }
     #[test]
     fn turn_turtle_valid_big(){
         let mut turtle = Turtle::new();
-        turtle.set_heading(10.0);
-        turtle.turn(360.0);
-        assert_eq!(turtle.angle,370.0)
+        let _ = turtle.set_heading(10.0);
+        let _ = turtle.turn(360.0);
+        assert_eq!(turtle.angle,370.0);
     }
     #[test]
     fn turn_turtle_invalid(){
         let mut turtle = Turtle::new();
-        turtle.turn(90.5);
-        todo!();
+        let res = turtle.turn(90.5);
+        assert_eq!(res.is_err(), true);
     }
     
     #[test]
     fn move_turtle_forward(){
+        let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.move_turtle(2.0);
+        match turtle.move_turtle(2.0,&mut image) {
+            Ok(_) => (),
+            Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
+        }
         assert_eq!(turtle.position,Location::new(0.0,2.0));
     }
 
     #[test]
     fn move_turtle_back(){
+        let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.turn(180.0);
-        turtle.move_turtle(2.0);
+        let _ = turtle.turn(180.0); // TODO explain why error ignored.
+        match turtle.move_turtle(2.0,&mut image) {
+            Ok(_) => (),
+            Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
+        }
+
         assert_eq!(turtle.position,Location::new(0.0,-2.0));
     }
 
     #[test]
     fn move_turtle_right(){
+        let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.turn(90.0);
-        turtle.move_turtle(2.0);
+        let _ = turtle.turn(90.0);
+        match turtle.move_turtle(2.0,&mut image) {
+            Ok(_) => (),
+            Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
+        }
         assert_eq!(turtle.position,Location::new(2.0, 0.0));
     }
 
     #[test]
     fn move_turtle_left(){
+        let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.turn(270.0);
-        turtle.move_turtle(2.0);
+        let _ = turtle.turn(270.0);
+        match turtle.move_turtle(2.0,&mut image) {
+            Ok(_) => (),
+            Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
+        }
         assert_eq!(turtle.position,Location::new(-2.0,0.0));
     }
 
     #[test]
     fn move_turtle_diagonal_small(){
+        let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.set_heading(45.0);
-        turtle.move_turtle((2f32).sqrt());
+        let _ = turtle.set_heading(45.0);
+        match turtle.move_turtle((2f32).sqrt(),&mut image){
+            Ok(_) => (),
+            Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
+        }
     }
 
     #[test]
     fn move_turtle_diagonal_large(){
+        let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.set_heading(360f32+45f32);
-        turtle.move_turtle((2f32).sqrt());
+        let _ = turtle.set_heading(360f32+45f32);
+        match turtle.move_turtle((2f32).sqrt(),&mut image) {
+            Ok(_) => (),
+            Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
+        }
+        assert_eq!(turtle.position,Location::new(1f32,1f32));
     }
 
     #[test]

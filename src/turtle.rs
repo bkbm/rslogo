@@ -90,6 +90,11 @@ impl Turtle{
 
 #[cfg(test)]
 mod tests{
+    // Some of the tests ignoring result from error able functions because the error is not related
+    // to the functionality tested and also the values are specified for the test such that it is
+    // guaranteed they cant cause an error. There are tests to check the error checking in these
+    // functions to ensure they catch errors. Therefore i can ensure that these errors can be
+    // ignored in those tests.
     use super::*;
     #[test]
     fn setting_x_position(){
@@ -108,15 +113,15 @@ mod tests{
     #[test]
     fn set_heading_valid_small(){
         let mut turtle = Turtle::new();
-        turtle.set_heading(90.0);
-        turtle.set_heading(45.0);
+        let _ = turtle.set_heading(90.0);  
+        let _ = turtle.set_heading(45.0);
         assert_eq!(turtle.angle,45.0);
     }
     #[test]
     fn set_heading_valid_large(){
         let mut turtle = Turtle::new();
-        turtle.set_heading(90.0);
-        turtle.set_heading(370.0);
+        let _ = turtle.set_heading(90.0);
+        let _ = turtle.set_heading(370.0);
         assert_eq!(turtle.angle,370.0);
     }
     #[test]
@@ -129,22 +134,22 @@ mod tests{
     #[test]
     fn turn_turtle_valid_small(){
         let mut turtle = Turtle::new();
-        turtle.set_heading(45.0);
-        turtle.turn(90.0);
+        let _ = turtle.set_heading(45.0);
+        let _ = turtle.turn(90.0);
         assert_eq!(turtle.angle,135.0);
     }
     #[test]
     fn turn_turtle_valid_big(){
         let mut turtle = Turtle::new();
-        turtle.set_heading(10.0);
-        turtle.turn(360.0);
-        assert_eq!(turtle.angle,370.0)
+        let _ = turtle.set_heading(10.0);
+        let _ = turtle.turn(360.0);
+        assert_eq!(turtle.angle,370.0);
     }
     #[test]
     fn turn_turtle_invalid(){
         let mut turtle = Turtle::new();
-        turtle.turn(90.5);
-        todo!();
+        let res = turtle.turn(90.5);
+        assert_eq!(res.is_err(), true);
     }
     
     #[test]
@@ -160,10 +165,9 @@ mod tests{
 
     #[test]
     fn move_turtle_back(){
-
         let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.turn(180.0);
+        let _ = turtle.turn(180.0); // TODO explain why error ignored.
         match turtle.move_turtle(2.0,&mut image) {
             Ok(_) => (),
             Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
@@ -176,7 +180,7 @@ mod tests{
     fn move_turtle_right(){
         let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.turn(90.0);
+        let _ = turtle.turn(90.0);
         match turtle.move_turtle(2.0,&mut image) {
             Ok(_) => (),
             Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
@@ -188,7 +192,7 @@ mod tests{
     fn move_turtle_left(){
         let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.turn(270.0);
+        let _ = turtle.turn(270.0);
         match turtle.move_turtle(2.0,&mut image) {
             Ok(_) => (),
             Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
@@ -200,7 +204,7 @@ mod tests{
     fn move_turtle_diagonal_small(){
         let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.set_heading(45.0);
+        let _ = turtle.set_heading(45.0);
         match turtle.move_turtle((2f32).sqrt(),&mut image){
             Ok(_) => (),
             Err(_) => panic!("error drawing on image, shouldnt be drawing image though")
@@ -211,7 +215,7 @@ mod tests{
     fn move_turtle_diagonal_large(){
         let mut image = Image::new(64, 64);
         let mut turtle = Turtle::new();
-        turtle.set_heading(360f32+45f32);
+        let _ = turtle.set_heading(360f32+45f32);
         match turtle.move_turtle((2f32).sqrt(),&mut image) {
             Ok(_) => (),
             Err(_) => panic!("error drawing on image, shouldnt be drawing image though")

@@ -19,14 +19,19 @@ impl Turtle {
         Turtle{
             position: Location::origin(),
             angle: 0.0,
-            colour: 0.0,
+            colour: 7.0,
             mode: Mode::PenUp
         }
     }
 }
 
 impl Turtle{
-
+    fn pen_up(&mut self){
+        self.mode = Mode::PenUp;
+    }
+    fn pen_down(&mut self){
+        self.mode = Mode::PenDown;
+    }
     fn move_turtle(&mut self, numpixels: f32, image:&mut Image) -> Result<(), String>{
 
         match self.mode {
@@ -225,7 +230,13 @@ mod tests{
 
     #[test]
     fn draw_line(){
-        todo!();
+        let mut image = Image::new(256,256);
+        let mut turtle = Turtle::new();
+        turtle.pen_down();
+        let _ = turtle.turn(90.0);
+        let _ = turtle.move_turtle(100.0,&mut image);
+        let _ = image.save_png("one_line_test.png");
+        assert_eq!(turtle.position, Location::new(0.0,100.0));
     }
 
     #[test]

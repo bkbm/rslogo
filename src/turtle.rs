@@ -43,6 +43,7 @@ impl Turtle{
         }
     }
     fn pen_up_move(&mut self, numpixels: f32){
+
         let angle = self.angle.to_radians();
         let x = (100f32*numpixels*angle.sin()).round() / 100.0;
         let y = (100f32*numpixels*angle.cos()).round() / 100.0;
@@ -52,8 +53,8 @@ impl Turtle{
     }
     fn pen_down_move(&mut self, numpixels: f32, image: &mut Image) -> Result<(), String> {
         let (x, y) = match image.draw_simple_line(
-            self.position.x(),
-            self.position.y(),
+            self.position.x()+((image.get_dimensions().0/2) as f32),
+            ((image.get_dimensions().1 as f32) - self.position.y())-((image.get_dimensions().1/2) as f32),
             self.angle as i32,
             numpixels,
             COLORS[self.colour as usize]
@@ -63,7 +64,7 @@ impl Turtle{
                 return Err(error.to_string());
             }
         };
-        self.position = Location::new(x,y);
+        self.position = Location::new(x-((image.get_dimensions().0 / 2) as f32),((image.get_dimensions().1 / 2) as f32) - y);
         Ok(())
 
     }
@@ -233,11 +234,21 @@ mod tests{
         let mut image = Image::new(256,256);
         let mut turtle = Turtle::new();
         turtle.pen_down();
-        let _ = turtle.turn(90.0);
         let _ = turtle.move_turtle(100.0,&mut image);
         let _ = image.save_png("one_line_test.png");
         assert_eq!(turtle.position, Location::new(0.0,100.0));
     }
+    #[test]
+    fn draw_left() { todo!(); }
+
+    #[test]
+    fn draw_right() { todo!(); }
+
+    #[test]
+    fn draw_back() { todo!(); }
+
+    #[test]
+    fn draw_non_origin(){ todo!(); }
 
     #[test]
     fn draw_circle(){ todo!(); }

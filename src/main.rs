@@ -2,6 +2,7 @@ use clap::Parser;
 use unsvg::Image;
 pub mod turtle;
 pub mod location;
+pub mod scanner;
 /// A simple program to parse four arguments using clap.
 #[derive(Parser)]
 struct Args {

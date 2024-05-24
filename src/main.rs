@@ -1,8 +1,11 @@
 use clap::Parser;
 use unsvg::Image;
-pub mod turtle;
+pub mod error;
 pub mod location;
 pub mod scanner;
+pub mod token;
+pub mod turtle;
+
 /// A simple program to parse four arguments using clap.
 #[derive(Parser)]
 struct Args {
